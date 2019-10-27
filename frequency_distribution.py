@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import random
 # import seaborn as sns
 # import sklearn
-get_ipython().run_line_magic('matplotlib', 'inline')
+#get_ipython().run_line_magic('matplotlib', 'inline')
 # from sklearn.model_selection import train_test_split
 import math
 
