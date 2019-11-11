@@ -13,7 +13,7 @@ import random
 import math
 
 
-class relative_frequency(object):
+class Relative_Frequency(object):
     
     def __init__(self, dataset):
         self.dataset = dataset
@@ -24,28 +24,32 @@ class relative_frequency(object):
         
     def get_data_range(self, number_of_intervals):
         self.width_of_class_interval = self. get_width_of_class_interval(number_of_intervals)
-        return np.arange(min(self.dataset), max(self.dataset)+self.width_of_class_interval, self.width_of_class_interval).round(decimals=1)
+        self.data_range = np.arange(min(self.dataset), max(self.dataset)+self.width_of_class_interval, self.width_of_class_interval).round(decimals=1)
+        return self.data_range
         
         
     def get_custom_data_range(self, start_point, end_point, width_of_class_interval):
-        return np.arange(start_point, end_point+width_of_class_interval, width_of_class_interval)
+        self.data_range = np.arange(start_point, end_point+width_of_class_interval, width_of_class_interval)
+        return self.data_range
         
         
     def get_width_of_class_interval(self, number_of_intervals):
         self.number_of_intervals = number_of_intervals
-        width_of_class_interval = round(((math.ceil(max(self.dataset))-min(self.dataset))/(self.number_of_intervals)), ndigits=1)
-        if width_of_class_interval < 0.2:
+        self.width_of_class_interval = round(((math.ceil(max(self.dataset))-min(self.dataset))/(self.number_of_intervals)), ndigits=1)
+        if self.width_of_class_interval < 0.2:
             self.get_width_of_class_interval(number_of_intervals-1)
         else:
-            return width_of_class_interval
+            return self.width_of_class_interval
         
         
     def get_custom_width_of_class_interval(self, start_point, end_point, number_of_intervals):
-        return round((end_point - start_point)/(number_of_intervals))
+        self.width_of_class_interval = round((end_point - start_point)/(number_of_intervals))
+        return self.width_of_class_interval
         
         
     def get_number_of_intervals(self, width_of_class_interval=0.0):
-        if width_of_class_interval == 0.0:
+        self.width_of_class_interval = width_of_class_interval
+        if self.width_of_class_interval == 0.0:
             return len(self.dataset)
         else:
             return round(((math.ceil(max(self.dataset))-min(self.dataset))/(width_of_class_interval)), ndigits=1)
@@ -84,8 +88,8 @@ class relative_frequency(object):
         return result
     
     
-    def interval(self, data_range):
-        self.data_range = data_range
+    def interval(self):#, data_range):
+        #self.data_range = data_range
         result = []
         for i in range(len(self.data_range)-1):
             if i == 0:
@@ -98,8 +102,8 @@ class relative_frequency(object):
         return result
     
     
-    def open_interval(self, data_range):
-        self.data_range = data_range
+    def open_interval(self):#, data_range):
+        #self.data_range = data_range
         result = []
         for i in range(len(self.data_range)+1):
             if i == 0:
@@ -114,16 +118,18 @@ class relative_frequency(object):
     
     def classification(self, data_range, close=True):
         if close is True:
+            f = self.frequency(data_range)
             result = {
-                "Interval": self.interval(data_range),
-                "Frequency": self.frequency(data_range),
-                "%": np.array(self.frequency(data_range))/len(self.dataset),
+                "Interval": self.interval(),
+                "Frequency": f,
+                "%": np.array(f)/len(self.dataset),
             }
         else:
+            f = self.open_frequency(data_range)
             result = {
-            "Interval": self.open_interval(data_range),
-            "Frequency": self.open_frequency(data_range),
-            "%": np.array(self.open_frequency(data_range))/len(self.dataset),
+            "Interval": self.open_interval(),
+            "Frequency": f,
+            "%": np.array(f)/len(self.dataset),
         }
             
         return pd.DataFrame(result)
@@ -163,4 +169,3 @@ class relative_frequency(object):
         fig = plt.figure(figsize=(15.0, 6.0))
         axes1 = fig.add_axes([0.1,0.1,0.8,0.8])
         axes1.plot(data_range, commulative_frequency_distribution)
-
