@@ -650,25 +650,7 @@ class Probability_Distribution(object):
         return probability_value
     
     
-    def normal_distribution(self, mu, sigma, X1=-math.inf, X2=math.inf):
-        """
-        Also called Gausssian Distribution
-        use for continues probabilities
-        
-        NOTE: 1. while taking random variable(rv) if rv's are inclusive
-        then x1-0.5, x2+0.5, and if not inclusive then x1+0.5 & x2-0.5 
-        only in the case of discontinoues distribution. In normal
-        values remains the same.
-        
-        X1 = Smaller value of random variable with which concerned
-        X2 = Larger value of random variable with which concerned
-        mu = mean if the distribution of this random variable
-        sigma = standard deviation of thistribution
-        """
-        z1 = self.number_of_standard_deviations(X1, mu, sigma)
-        z2 = self.number_of_standard_deviations(X2, mu, sigma)
-        print(z1, z2)
-        
+    def probability_of_normal_distribution(self, z1, z2):
         if abs(z1) == abs(z2) == math.inf:
             return None
         
@@ -716,7 +698,28 @@ class Probability_Distribution(object):
                 prob2 = self.probability_of_num_standard_deviations('complementary_cumulative.csv', abs(z1))
                 print("probabilities 1 & 2", prob1, prob2)
                 return prob1 - prob2
-    
+
+
+    def normal_distribution(self, mu, sigma, X1=-math.inf, X2=math.inf):
+        """
+        Also called Gausssian Distribution
+        use for continues probabilities
+        
+        NOTE: 1. while taking random variable(rv) if rv's are inclusive
+        then x1-0.5, x2+0.5, and if not inclusive then x1+0.5 & x2-0.5 
+        only in the case of discontinoues distribution. In normal
+        values remains the same.
+        
+        X1 = Smaller value of random variable with which concerned
+        X2 = Larger value of random variable with which concerned
+        mu = mean if the distribution of this random variable
+        sigma = standard deviation of thistribution
+        """
+        z1 = self.number_of_standard_deviations(X1, mu, sigma)
+        z2 = self.number_of_standard_deviations(X2, mu, sigma)
+        print(z1, z2)
+        return self.probability_of_normal_distribution(z1, z2)
+        
     
     def __str__(self):
         return "Random Variables(X): "+str(self.X)+"\n \nProbabilities: "+str(self.probabilities)
