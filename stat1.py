@@ -608,10 +608,10 @@ class Probability_Distribution(object):
         return pd.DataFrame(result)
     
     
-    def standard_normal_table(self, file):
+    def standard_normal_table(self, file, column_drop):
         df_file = pd.read_csv(file)
-        df_file.index = df_file['z']
-        df_file.drop('z', axis=1, inplace=True)
+        df_file.index = df_file[column_drop]
+        df_file.drop(column_drop, axis=1, inplace=True)
 
         return df_file
     
@@ -642,7 +642,7 @@ class Probability_Distribution(object):
         print("first, last:", first_num, last_num)
         
         if first_num <= 4.0 or first_num >=100:
-            normal_table = self.standard_normal_table(file)
+            normal_table = self.standard_normal_table(file, 'z')
             probability_value = normal_table.loc[first_num][last_num]
         else:
             probability_value = 0.0

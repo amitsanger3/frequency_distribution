@@ -2,3 +2,10 @@ cumulative_from_mean_0toZ.csv
 cumulative.csv
 complementary_cumulative.csv
 greater_than_z.csv
+
+
+# ==========================
+t-table-confidence.csv
+t-table-cumulative.csv
+t-table-one-tail.csv
+t-table-two-tail.csv
