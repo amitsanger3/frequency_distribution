@@ -490,39 +490,60 @@ class MeasureCentralTendency(RelativeFrequency):
         
     def estimate_percentage_change(self, geometric_mean, time):
         """
-
-        :param geometric_mean:
-        :param time:
-        :return:
+        Calculate the estimation % change of any year from any given year
+        geometric mean.
+        :param geometric_mean: float
+            G.M.
+        :param time: int
+            time interval upto which we need to calculate % change
+        :return: float
+            estimate % change
 
         Example:
         --------
+        >>> gm = MeasureCentralTendency(numpy.array([9, 7, 7, 8, 8])).geometric_mean(MeasureCentralTendency(numpy.array(
+        [9, 7, 7, 8, 8])).get_change_factor(increase=True),increase=True)
+        >>> MeasureCentralTendency(numpy.array([9, 7, 7, 8, 8])).estimate_percentage_change(gm, 3)
+        8.160243934535055
         """
         return (1 + geometric_mean)**(time) - 1
             
     def median_by_raw_data(self):
         """
-
-        :return:
-
+        Calculate median
+        :return: int/float
+                median(central item in the data). Half of the items
+                lies above it and half below it.
         Example:
         --------
+        >>> MeasureCentralTendency(numpy.array([9, 7, 7, 8, 8])).median_by_raw_data()
+        8.0
         """
         return np.median(self.dataset)
         
-    def median_by_frequency_distribution(self):
+    def median_by_frequency_distribution(self, data_range):
         """
-
-        :return:
+        Calculate median from grouped data
+        :param data_range: list/array
+                List of ranges of which middle points need
+                to be calculated.
+        :return: int/float
+                median(central item in the data). Half of the items
+                lies above it and half below it.
 
         Example:
         --------
+        >>> data_range = MeasureCentralTendency(numpy.array([1, 6, 7, 1, 6, 3, 1, 7, 5, 1])).get_data_range(5)
+        >>> MeasureCentralTendency(numpy.array([1, 6, 7, 1, 6, 3, 1, 7, 5, 1])).median_by_frequency_distribution(data_range)
+        5.5
         """
+        self.data_range = data_range
+
         f = np.array(self.frequency(self.data_range))
         cum_f = f.cumsum() # Cumulative sum of frequency
         n = np.array(f).sum()
         center_elemnt = (n+1)/2
-        if n%2 == 0:
+        if n % 2 == 0:
             center1,center2 = math.floor(center_elemnt), math.ceil(center_elemnt)
             class_num = len(cum_f[cum_f<center_elemnt]) # Class index number of which median belong
             fnum = cum_f[class_num] # frequency num of which median belong
@@ -544,42 +565,50 @@ class MeasureCentralTendency(RelativeFrequency):
     
     def mode_by_raw_data(self):
         """
+        Calculate mode (if dataset takes smaller value having larger number of repeats)
+        :return:tuple of 2 values.
+                1. mode(the value that is repeated most in the data set).
+                2. number of repetition.
 
-        :return:
-        """
-        """
-        if dataset takes smaller value having larger number of repeats
-        
         Example:
         --------
+        >>> MeasureCentralTendency(numpy.array([1, 6, 7, 1, 6, 3, 1, 7, 5, 1])).mode_by_raw_data()
+        (1, 4)
         """
         unique_data_set = np.unique(self.dataset, return_counts=True)
         return unique_data_set[0][unique_data_set[1].tolist().index(unique_data_set[1].max())], unique_data_set[1].max()
         
-    def mode_by_frequency_distribution(self):
+    def mode_by_frequency_distribution(self, data_range):
         """
-
+        Calculate mode from grouped data.(if frequency take the larger value)
+        :param data_range: list/array
+                List of ranges of which middle points need
+                to be calculated.
         :return:
-        """
-        """
-        if frequency take the larger value
-        
+
         Example:
         --------
+        >>> data_range = MeasureCentralTendency(numpy.array([5, 6, 5, 9, 9, 8, 1, 2, 4, 8])).get_data_range(5)
+        >>> MeasureCentralTendency(numpy.array([5, 6, 5, 9, 9, 8, 1, 2, 4, 8])).mode_by_frequency_distribution(data_range)
+        7.0
         """
+        self.data_range = data_range
         f = np.array(self.frequency(self.data_range))
-        cum_f = f.cumsum() # Cumulative sum of frequency
+        # print("f: ", f)
+        cum_f = f.cumsum()  # Cumulative sum of frequency
         n = np.array(f).sum()
         center_elemnt = (n+1)/2
        
         class_num = len(cum_f[cum_f<center_elemnt]) # Class index number of which median belong
         fnum = cum_f[class_num] # frequency num of which median belong
         data_range_lower_num, data_range_upper_num = self.data_range[class_num], self.data_range[class_num+1]
-        
+        # print("lower, upper: ", data_range_lower_num, data_range_upper_num)
         data_range_width = data_range_upper_num - data_range_lower_num
         d1 = f[class_num] - f[class_num+1]
         d2 = f[class_num] - f[class_num-1]
-        mode = data_range_lower_num + ((d1/(d1+d2))*data_range_width)
+        d = d1/(d1+d2)
+        # print("d:", d)
+        mode = data_range_lower_num + (d*data_range_width)
         
         return mode
             
@@ -588,8 +617,21 @@ class MeasureCentralTendency(RelativeFrequency):
 
 
 class MeasureDispersion(object):
+    """
+    spread, or variability
+    """
    
     def __init__(self, dataset):
+        """
+        Initialize variables.
+        :param dataset: numpy array
+                Raw dataset.
+
+        Examples:
+        ---------
+        >>> numpy.random.randint(1,9,5)
+        array([4, 4, 3, 1, 7])
+        """
         self.dataset = dataset
          
     def get_dataset(self):
@@ -606,12 +648,55 @@ class MeasureDispersion(object):
         return max(self.dataset)-min(self.dataset)
     
     def percentile(self, fraction):
+        """
+        Calculate percentile of the data set on given fraction.
+        Useful Definitions:
+        -------------------
+            1. Fractile: have special names, depending on number
+                of equal parts into which they divide the data.
+            2. Decile: fractile that divide the data into 10
+                equal parts called deciles.
+            3. Quartiles: fractile that divide the data into 4
+                equal parts called quartiles.
+            4. Percentiles: fractile that divide the data into 100
+                equal parts called percentiles.
+        :param fraction: float
+            Upto the percentile need to calculate. if 80th percentile
+                fraction = 0.8
+        :return: int/float
+            The point of the data set on that fraction.
+        """
         return sorted(self.dataset)[math.floor(len(self.dataset)*fraction) - 1]
     
     def interfractile_range(self, lower_fractile, upper_fractile):
+        """
+        Calculate measure of the spread between two fractile in a frequency
+        distribution, i.e., the difference between the values of the two
+        fractiles.
+        :param lower_fractile: float
+        :param upper_fractile: float
+        :return: int/float
+
+        Examples:
+        ---------
+        >>> MeasureDispersion(numpy.array([3, 5, 4, 1, 1, 1, 5, 9, 9, 9])).interfractile_range(0.2,0.8)
+        8
+        """
         return self.percentile(upper_fractile) - self.percentile(lower_fractile)
     
     def interquartile_range(self):
+        """
+        Interquartile range measures approximately how far from the median
+        we must go on either side before we include one half of the value
+        of the data set. The interquartile range is the difference between
+        the values of the first and third quartile.
+        :return: int/float
+
+        Examples:
+        ---------
+        >>> MeasureDispersion(numpy.array([3, 5, 4, 1, 1, 1, 5, 9, 9, 9])).interquartile_range()
+        4
+        """
         return self.interfractile_range(0.25, 0.75)
         
     # ==============================
@@ -619,30 +704,119 @@ class MeasureDispersion(object):
     # ==============================
 
     def population_variance(self):
+        """
+        Calculate Population variance
+        :return: float
+
+        Examples:
+        ---------
+        >>> MeasureDispersion(numpy.array([3, 5, 4, 1, 1, 1, 5, 9, 9, 9])).population_variance()
+        10.009999999999998
+        """
         return ((self.dataset**2).sum() / len(self.dataset)) - (self.dataset.mean())**2
     
     def population_standard_daviation(self):
+        """
+        Calculate Population Standard Deviation
+        :return: float
+
+        Examples:
+        ---------
+        >>> MeasureDispersion(numpy.array([3, 5, 4, 1, 1, 1, 5, 9, 9, 9])).population_standard_daviation()
+        3.1638584039112745
+        """
         return (self.population_variance())**(1/2)
     
     def standard_score(self, x):
+        """
+        Calculate the number of standard deviations a particular observation
+        lies below or above the mean.
+        :param x: float
+                observation
+        :return: int/float
+                Number of times of standard deviation.
+                If +ive right hand side movement from mean, if -ive then LHS
+        Examples:
+        ---------
+        >>> MeasureDispersion(numpy.array([3, 5, 4, 1, 1, 1, 5, 9, 9, 9])).standard_score(0.5)
+        -1.3274930366061295
+        i.e -1 times of standard deviation
+        """
         return (x - self.dataset.mean()) / self.population_standard_daviation()
     
     def population_mean_by_frequency_distribution(self, frequency):
+        """
+
+        :param frequency:
+        :return:
+
+        Examples:
+        ---------
+        """
         return ((self.dataset * frequency).sum())/(frequency.sum())
     
     def population_variance_by_frequency_distribution(self, frequency):
+        """
+
+        :param frequency:
+        :return:
+
+        Examples:
+        ---------
+        """
         return ((frequency * (self.dataset**2)).sum() / (frequency.sum())) - (self.population_mean_by_frequency_distribution(frequency))**2
           
     def population_standard_daviation_by_frequency_distribution(self, frequency):
+        """
+
+        :param frequency:
+        :return:
+
+        Examples:
+        ---------
+        """
         return (self.population_variance_by_frequency_distribution(frequency))**(1/2)
     
     def sample_variance(self):
+        """
+        Calculate sample variance
+        :return: int/float
+
+        Examples:
+        ---------
+        >>> MeasureDispersion(numpy.array([3, 5, 4, 1, 1, 1, 5, 9, 9, 9])).sample_variance()
+        11.122222222222222
+        """
         return ((self.dataset - self.dataset.mean())**2).sum() / (len(self.dataset) - 1)
     
     def sample_standard_deviation(self):
+        """
+        Calculate Sample Standard Deviations
+        :return: int/float
+
+        Examples:
+        ---------
+        >>> MeasureDispersion(numpy.array([3, 5, 4, 1, 1, 1, 5, 9, 9, 9])).sample_standard_deviation()
+        3.3349995835415367
+        """
         return (self.sample_variance())**(1/2)
     
     def sample_standard_score(self, x):
+        """
+        Calculate the number of sample standard deviations a particular observation
+        lies below or above the sample mean.
+        :param x: float
+                observation
+        :return: int/float
+                Number of times of sample standard deviation.
+                If +ive right hand side movement from  sample mean, if -ive then LHS
+
+        Examples:
+        ---------
+        >>> MeasureDispersion(numpy.array([3, 5, 4, 1, 1, 1, 5, 9, 9, 9])).standard_score(0.5)
+        -1.3274930366061295
+        i.e -1 times of sample standard deviation
+        """
         return (x - self.dataset.mean()) / self.sample_standard_deviation()
     
     # ==============================
@@ -651,6 +825,22 @@ class MeasureDispersion(object):
 
     def coefficient_of_variation(self, sigma, mu):
         """
+        Calculate Coefficient of Variation( Relative measure that will give
+        us a feel for the magnitude of the deviation relative to the magnitude
+        of the mean).
+        :param sigma: population standard deviation
+        :param mu: population mean
+        :return: float
+            % of standard deviation related to the mean.
+
+        Examples:
+        ---------
+        >>> mu = numpy.array([3, 5, 4, 1, 1, 1, 5, 9, 9, 9]).mean()
+        >>> sigma = MeasureDispersion(numpy.array([3, 5, 4, 1, 1, 1, 5, 9, 9, 9])).population_standard_daviation()
+        >>> MeasureDispersion(numpy.array([3, 5, 4, 1, 1, 1, 5, 9, 9, 9])).coefficient_of_variation(sigma, mu)
+        67.31613625343137
+        NOTE:
+        -----
         lesser is better
         """
         return (sigma/mu)*100
